@@ -7,67 +7,44 @@ namespace MyBackend.Controllers;
 
 [ApiController]
 [Route("api/users")]
-[Authorize] // any authenticated user
+[Authorize]
 public class UserController(IUserService userService) : ControllerBase
 {
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<UserDto>>> GetAllUsers()
     {
         var users = await userService.GetAllUsersAsync();
-        return Ok(users); // 200
+        return Ok(users);
     }
     
     [HttpGet("{id}")]
     public async Task<ActionResult<UserDto>> GetUserById(int id)
     {
         var user = await userService.GetUserByIdAsync(id);
-        if (user is null)
-            return NotFound(); // 404
-        return Ok(user); // 200
+        return Ok(user);
     }
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<UserDto>> CreateUser(CreateUserDto dto)
     {
-        try
-        {
-            var newUser = await userService.CreateUserAsync(dto);
-            return CreatedAtAction(nameof(GetUserById), new { id = newUser.Id }, newUser); // 201
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var newUser = await userService.CreateUserAsync(dto);
+        return CreatedAtAction(nameof(GetUserById), new { id = newUser.Id }, newUser);
     }
     
     [HttpPut("{id}")]
     public async Task<ActionResult<UserDto?>> UpdateUser(int id, UpdateUserDto dto)
     {
-        try
-        {
-            var updatedUser = await userService.UpdateUserAsync(id, dto);
-            if (updatedUser is null)
-                return NotFound(); // 404
-            return Ok(updatedUser); // 200
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var updatedUser = await userService.UpdateUserAsync(id, dto);
+        return Ok(updatedUser);
     }
     
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteUser(int id)
     {
-        try
-        {
-            var success = await userService.DeleteUserAsync(id); // 204 or 404
-            return success ? NoContent() : NotFound();
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await userService.DeleteUserAsync(id);
+        return NoContent();
     }
 }

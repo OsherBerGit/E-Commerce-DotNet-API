@@ -6,24 +6,24 @@ using MyBackend.Models;
 
 namespace MyBackend.Services;
 
-public class PurchaseService(AppDbContext context, IPurchaseMapper mapper) : IPurchaseService
+public class PurchaseService(AppDbContext _context, IPurchaseMapper _mapper) : IPurchaseService
 {
     public async Task<List<PurchaseDto>> GetAllPurchasesAsync() { throw new NotImplementedException(); }
 
     public async Task<PurchaseDto?> GetPurchaseByIdAsync(int id)
     {
-        var purchase = await context.Purchases
+        var purchase = await _context.Purchases
             .AsNoTracking()
             .Include(p => p.PurchaseProducts)
             .ThenInclude(pp => pp.Product)
             .FirstOrDefaultAsync(p => p.Id == id);
 
-        return mapper.ToDto(purchase);
+        return _mapper.ToDto(purchase);
     }
 
     public async Task<List<PurchaseDto>> GetPurchasesByUserIdAsync(int userId)
     {
-        var purchases = await context.Purchases
+        var purchases = await _context.Purchases
             .AsNoTracking()
             .Where(p => p.UserId == userId)
             .Include(p => p.PurchaseProducts)
@@ -31,22 +31,22 @@ public class PurchaseService(AppDbContext context, IPurchaseMapper mapper) : IPu
             .OrderByDescending(p => p.Date)
             .ToListAsync();
         
-        return purchases.Select(p => mapper.ToDto(p)!).ToList();
+        return purchases.Select(p => _mapper.ToDto(p)!).ToList();
     }
     
     public async Task<PurchaseDto?> CreatePurchaseAsync(int userId, CreatePurchaseDto dto)
     {
-        var user = await context.Users.FindAsync(userId);
+        var user = await _context.Users.FindAsync(userId);
         if (user is null)
             throw new Exception("User not found");
         
-        var purchase = mapper.ToEntity(dto);
+        var purchase = _mapper.ToEntity(dto);
         purchase.UserId = userId;
         purchase.Date = DateTime.UtcNow;
 
         foreach (var item in purchase.PurchaseProducts)
         {
-            var existingProduct = await context.Products.FindAsync(item.ProductId);
+            var existingProduct = await _context.Products.FindAsync(item.ProductId);
             if (existingProduct is null)
                 throw new Exception($"Product with ID {item.ProductId} not found.");
             
@@ -57,10 +57,10 @@ public class PurchaseService(AppDbContext context, IPurchaseMapper mapper) : IPu
             item.Product = existingProduct;
         }
         
-        context.Purchases.Add(purchase);
-        await context.SaveChangesAsync();
+        _context.Purchases.Add(purchase);
+        await _context.SaveChangesAsync();
         
-        return mapper.ToDto(purchase);
+        return _mapper.ToDto(purchase);
     }
 
     public async Task<bool> DeletePurchaseAsync(int id) { throw new NotImplementedException(); }

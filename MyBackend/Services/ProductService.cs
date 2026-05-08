@@ -7,68 +7,68 @@ using MyBackend.Mappers;
 
 namespace MyBackend.Services;
 
-public class ProductService(AppDbContext context, IProductMapper mapper) : IProductService
+public class ProductService(AppDbContext _context, IProductMapper _mapper) : IProductService
 {
     public async Task<List<ProductDto>> GetAllProductsAsync()
     {
-        var products = await context.Products
+        var products = await _context.Products
             .AsNoTracking()
             .ToListAsync();
         
-        return products.Select(p => mapper.ToDto(p)!).ToList();
+        return products.Select(p => _mapper.ToDto(p)!).ToList();
     }
     
     public async Task<ProductDto?> GetProductByIdAsync(int id)
     {
-        var product = await context.Products
+        var product = await _context.Products
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == id);
         
-        return mapper.ToDto(product);
+        return _mapper.ToDto(product);
     }
     
     public async Task<ProductDto> CreateProductAsync(CreateProductDto dto)
     {
-        var existingProduct = await context.Products.AnyAsync(p => p.Name == dto.Name);
+        var existingProduct = await _context.Products.AnyAsync(p => p.Name == dto.Name);
         if (existingProduct)
             throw new ProductAlreadyExistsException("Product with this name already exists.");
         
-        var product = mapper.ToEntity(dto);
+        var product = _mapper.ToEntity(dto);
         
-        context.Products.Add(product);
-        await context.SaveChangesAsync();
+        _context.Products.Add(product);
+        await _context.SaveChangesAsync();
 
-        return mapper.ToDto(product)!;
+        return _mapper.ToDto(product)!;
     }
     
     public async Task<ProductDto?> UpdateProductAsync(int id, UpdateProductDto dto)
     {
-        var product = await context.Products.FindAsync(id);
+        var product = await _context.Products.FindAsync(id);
         if (product is null)
             return null;
         
-        mapper.UpdateEntity(dto, product);
+        _mapper.UpdateEntity(dto, product);
 
-        await context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
 
-        return mapper.ToDto(product);
+        return _mapper.ToDto(product);
     }
 
     public async Task<bool> DeleteProductAsync(int id)
     {
-        var product = await context.Products.FindAsync(id);
+        var product = await _context.Products.FindAsync(id);
         if (product is null)
             return false;
         
-        context.Products.Remove(product);
-        await context.SaveChangesAsync();
+        _context.Products.Remove(product);
+        await _context.SaveChangesAsync();
         
         return true;
     }
 
     public async Task<ProductDto?> UpdateProductQuantityAsync(int id, int delta)
     {
-        var product = await context.Products.FindAsync(id);
+        var product = await _context.Products.FindAsync(id);
         if (product is null)
             return null;
         
@@ -77,8 +77,8 @@ public class ProductService(AppDbContext context, IProductMapper mapper) : IProd
         
         product.Quantity += delta; 
 
-        await context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
         
-        return mapper.ToDto(product);
+        return _mapper.ToDto(product);
     }
 }

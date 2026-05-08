@@ -5,7 +5,7 @@ using MyBackend.Mappers;
 
 namespace MyBackend.Services;
 
-public class ReviewService(AppDbContext context, IReviewMapper mapper) : IReviewService
+public class ReviewService(AppDbContext _context, IReviewMapper _mapper) : IReviewService
 {
     public async Task<List<ReviewDto>> GetAllReviewsAsync()
     {
@@ -14,67 +14,67 @@ public class ReviewService(AppDbContext context, IReviewMapper mapper) : IReview
 
     public async Task<ReviewDto?> GetReviewByIdAsync(int id)
     {
-        var review = await context.ProductReviews
+        var review = await _context.ProductReviews
             .AsNoTracking()
             .Include(pr => pr.User)
             .Include(pr => pr.Product)
             .FirstOrDefaultAsync(p => p.Id == id);
         
-        return mapper.ToDto(review);
+        return _mapper.ToDto(review);
     }
 
     public async Task<List<ReviewDto>> GetReviewsByProductIdAsync(int productId)
     {
-        var reviews = await context.ProductReviews
+        var reviews = await _context.ProductReviews
             .AsNoTracking()
             .Where(pr => pr.ProductId == productId)
             .Include(pr => pr.User)
             .OrderByDescending(pr => pr.CreatedAt)
             .ToListAsync();
         
-        return reviews.Select(r => mapper.ToDto(r)!).ToList();
+        return reviews.Select(r => _mapper.ToDto(r)!).ToList();
     }
 
     public async Task<List<ReviewDto>> GetReviewsByUserIdAsync(int userId)
     {
-        var reviews = await context.ProductReviews
+        var reviews = await _context.ProductReviews
             .AsNoTracking()
             .Where(pr => pr.UserId == userId)
             .Include(pr => pr.Product)
             .OrderByDescending(pr => pr.CreatedAt)
             .ToListAsync();
         
-        return reviews.Select(r => mapper.ToDto(r)!).ToList();
+        return reviews.Select(r => _mapper.ToDto(r)!).ToList();
     }
     
     public async Task<ReviewDto?> CreateReviewAsync(int userId, CreateReviewDto dto)
     {
-        var user = await context.Users.FindAsync(userId);
+        var user = await _context.Users.FindAsync(userId);
         if (user is null)
             throw new Exception("User not found");
         
-        var product = await context.Products.AnyAsync(p => p.Id == dto.ProductId);
+        var product = await _context.Products.AnyAsync(p => p.Id == dto.ProductId);
         if (!product)
             throw new Exception("Product not found");
         
-        var existingReview = await context.ProductReviews.AnyAsync(r => r.UserId == userId && r.ProductId == dto.ProductId);
+        var existingReview = await _context.ProductReviews.AnyAsync(r => r.UserId == userId && r.ProductId == dto.ProductId);
         if (existingReview)
             throw new Exception("User has already reviewed this product");
         
-        var review = mapper.ToEntity(dto);
+        var review = _mapper.ToEntity(dto);
         review.UserId = userId;
         review.CreatedAt = DateTime.UtcNow;
         review.User = user;
         
-        context.ProductReviews.Add(review);
-        await context.SaveChangesAsync();
+        _context.ProductReviews.Add(review);
+        await _context.SaveChangesAsync();
         
-        return mapper.ToDto(review);
+        return _mapper.ToDto(review);
     }
 
     public async Task<ReviewDto?> UpdateReviewAsync(int userId, int id, UpdateReviewDto dto)
     {
-        var review = await context.ProductReviews
+        var review = await _context.ProductReviews
             .Include(pr => pr.User)
             .Include(pr => pr.Product)
             .FirstOrDefaultAsync(r => r.Id == id);
@@ -85,24 +85,24 @@ public class ReviewService(AppDbContext context, IReviewMapper mapper) : IReview
         if (review.UserId != userId)
             throw new Exception("You are not authorized to update this review");
         
-        mapper.UpdateEntity(dto, review);
+        _mapper.UpdateEntity(dto, review);
         
-        await context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
         
-        return mapper.ToDto(review);
+        return _mapper.ToDto(review);
     }
 
     public async Task<bool> DeleteReviewAsync(int userId, int id)
     {
-        var review = await context.ProductReviews.FindAsync(id);
+        var review = await _context.ProductReviews.FindAsync(id);
         if (review is null)
             return false;
         
         if (review.UserId != userId)
             throw new Exception("You are not authorized to delete this review");
         
-        context.ProductReviews.Remove(review);
-        await context.SaveChangesAsync();
+        _context.ProductReviews.Remove(review);
+        await _context.SaveChangesAsync();
         
         return true;
     }

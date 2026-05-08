@@ -8,6 +8,6 @@ public interface IAuthService
 {
     Task<User?> RegisterUserAsync(CreateUserDto request);
     Task<AuthenticationResponse?> LoginUserAsync(AuthenticationRequest request);
-    Task<AuthenticationResponse?> RefreshTokenAsync(string token);
-    Task<bool> RevokeTokenAsync(string token);
+    Task<AuthenticationResponse?> RefreshTokenAsync();
+    Task<bool> RevokeTokenAsync();
 }
