@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using MyBackend.DTOs.PurchaseDtos;
 using MyBackend.Extensions;
 using MyBackend.Services;
+using MyBackend.Services.Interfaces;
 
 namespace MyBackend.Controllers;
 

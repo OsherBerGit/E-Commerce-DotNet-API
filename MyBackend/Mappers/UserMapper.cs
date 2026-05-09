@@ -1,4 +1,5 @@
 ﻿using MyBackend.DTOs.UserDtos;
+using MyBackend.Mappers.Interfaces;
 using MyBackend.Models;
 
 namespace MyBackend.Mappers;

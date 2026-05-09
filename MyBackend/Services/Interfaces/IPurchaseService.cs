@@ -1,6 +1,6 @@
 ﻿using MyBackend.DTOs.PurchaseDtos;
 
-namespace MyBackend.Services;
+namespace MyBackend.Services.Interfaces;
 
 public interface IPurchaseService
 {

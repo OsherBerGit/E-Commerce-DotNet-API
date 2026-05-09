@@ -2,7 +2,7 @@
 
 namespace MyBackend.DTOs;
 
-public class AuthenticationRequest // LoginUserDto
+public class AuthenticationRequest
 {
     [Required]
     public string Username { get; set; } = null!;

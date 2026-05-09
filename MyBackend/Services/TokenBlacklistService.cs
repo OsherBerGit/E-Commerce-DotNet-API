@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MyBackend.Data;
 using MyBackend.Models;
+using MyBackend.Services.Interfaces;
 
 namespace MyBackend.Services;
 

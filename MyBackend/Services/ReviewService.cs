@@ -2,6 +2,8 @@
 using MyBackend.Data;
 using MyBackend.DTOs.ReviewDtos;
 using MyBackend.Mappers;
+using MyBackend.Mappers.Interfaces;
+using MyBackend.Services.Interfaces;
 
 namespace MyBackend.Services;
 

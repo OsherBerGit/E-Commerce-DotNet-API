@@ -3,7 +3,9 @@ using MyBackend.Data;
 using MyBackend.DTOs.UserDtos;
 using MyBackend.Exceptions;
 using MyBackend.Mappers;
+using MyBackend.Mappers.Interfaces;
 using MyBackend.Models;
+using MyBackend.Services.Interfaces;
 
 namespace MyBackend.Services;
 

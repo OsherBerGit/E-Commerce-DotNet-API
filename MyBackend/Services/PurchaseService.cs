@@ -2,7 +2,9 @@
 using MyBackend.Data;
 using MyBackend.DTOs.PurchaseDtos;
 using MyBackend.Mappers;
+using MyBackend.Mappers.Interfaces;
 using MyBackend.Models;
+using MyBackend.Services.Interfaces;
 
 namespace MyBackend.Services;
 

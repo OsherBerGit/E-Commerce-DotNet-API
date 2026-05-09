@@ -6,6 +6,7 @@ using MyBackend.Data;
 using MyBackend.DTOs;
 using MyBackend.Models;
 using MyBackend.Services;
+using MyBackend.Services.Interfaces;
 
 namespace MyBackend.Tests.Services;
 

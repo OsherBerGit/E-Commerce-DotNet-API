@@ -2,6 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using MyBackend.Data;
 using MyBackend.Extensions;
 using MyBackend.Middlewares;
+using MyBackend.Services;
+using MyBackend.Services.Interfaces;
+using MyBackend.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +38,12 @@ builder.Services.AddCors(options =>
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
+// 1. Connect appsettings.json section to the CloudinarySettings class
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
+
+// 2. Register the service for Dependency Injection
+builder.Services.AddScoped<IPhotoService, PhotoService>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -44,6 +53,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<RequestLoggingMiddleware>();
+app.UseMiddleware<TokenBlacklistMiddleware>();
 
 app.UseExceptionHandler();
 app.UseHttpsRedirection();

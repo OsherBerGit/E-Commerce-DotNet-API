@@ -1,6 +1,6 @@
 ﻿using MyBackend.Models;
 
-namespace MyBackend.Services;
+namespace MyBackend.Services.Interfaces;
 
 public interface ITokenService
 {

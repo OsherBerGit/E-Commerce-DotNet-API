@@ -1,6 +1,6 @@
 ﻿using MyBackend.DTOs.ReviewDtos;
 
-namespace MyBackend.Services;
+namespace MyBackend.Services.Interfaces;
 
 public interface IReviewService
 {

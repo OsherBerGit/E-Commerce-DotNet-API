@@ -1,7 +1,7 @@
 ﻿using MyBackend.DTOs.PurchaseDtos;
 using MyBackend.Models;
 
-namespace MyBackend.Mappers;
+namespace MyBackend.Mappers.Interfaces;
 
 public interface IPurchaseMapper
 {

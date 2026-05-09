@@ -1,13 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.IdentityModel.Tokens.Jwt;
+using Microsoft.EntityFrameworkCore;
 using MyBackend.Data;
 using MyBackend.DTOs;
 using MyBackend.DTOs.UserDtos;
 using MyBackend.Exceptions;
 using MyBackend.Models;
+using MyBackend.Services.Interfaces;
 
 namespace MyBackend.Services;
 
-public class AuthService(AppDbContext context, ITokenService _tokenService, IHttpContextAccessor _httpContextAccessor) : IAuthService
+public class AuthService(AppDbContext context, ITokenService _tokenService, IHttpContextAccessor _httpContextAccessor, ITokenBlacklistService _tokenBlacklistService) : IAuthService
 {
     public async Task<User?> RegisterUserAsync(CreateUserDto request)
     {
@@ -82,24 +84,39 @@ public class AuthService(AppDbContext context, ITokenService _tokenService, IHtt
 
     public async Task<bool> RevokeTokenAsync()
     {
-        var token = _httpContextAccessor.HttpContext?.Request.Cookies["refreshToken"];
+        var refreshTokenString = _httpContextAccessor.HttpContext?.Request.Cookies["refreshToken"];
+        var authHeader = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+        var accessToken = authHeader?.Replace("Bearer ", "");
+
+        if (!string.IsNullOrEmpty(accessToken))
+        {
+            try
+            {
+                var handler = new JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(accessToken);
+                var expiry = jwtToken.ValidTo;
+                
+                await _tokenBlacklistService.BlacklistTokenAsync(accessToken, expiry);
+            }
+            catch (Exception) { }
+        }
         
-        if (string.IsNullOrEmpty(token)) return false;
-        
+        if (string.IsNullOrEmpty(refreshTokenString)) return false;
+    
         var user = await context.Users
             .Include(u => u.RefreshTokens)
-            .FirstOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == token));
-        
+            .FirstOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == refreshTokenString));
+    
         if (user is null) return false;
         
-        var refreshToken = user.RefreshTokens.SingleOrDefault(x => x.Token == token);
-        if (refreshToken is null || !refreshToken.IsActive) return false;
-        
-        refreshToken.Revoked = DateTime.UtcNow;
+        var refreshTokenEntity = user.RefreshTokens.SingleOrDefault(x => x.Token == refreshTokenString);
+        if (refreshTokenEntity is null || !refreshTokenEntity.IsActive) return false;
+    
+        refreshTokenEntity.Revoked = DateTime.UtcNow;
         await context.SaveChangesAsync();
         
         _httpContextAccessor.HttpContext?.Response.Cookies.Delete("refreshToken");
-        
+    
         return true;
     }
     

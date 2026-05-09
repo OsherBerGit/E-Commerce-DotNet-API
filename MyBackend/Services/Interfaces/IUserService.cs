@@ -1,6 +1,6 @@
 ﻿using MyBackend.DTOs.UserDtos;
 
-namespace MyBackend.Services;
+namespace MyBackend.Services.Interfaces;
 
 public interface IUserService
 {

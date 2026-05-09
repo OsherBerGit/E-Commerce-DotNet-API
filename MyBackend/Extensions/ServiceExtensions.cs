@@ -1,5 +1,7 @@
 ﻿using MyBackend.Mappers;
+using MyBackend.Mappers.Interfaces;
 using MyBackend.Services;
+using MyBackend.Services.Interfaces;
 
 namespace MyBackend.Extensions;
 
@@ -14,6 +16,7 @@ public static class ServiceExtensions
         services.AddScoped<IPurchaseService, PurchaseService>();
         services.AddScoped<IReviewService, ReviewService>();
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<ITokenBlacklistService, TokenBlacklistService>();
 
         // Dependency Injection - Mappers
         services.AddScoped<IUserMapper, UserMapper>();

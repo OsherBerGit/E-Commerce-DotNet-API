@@ -1,4 +1,4 @@
-﻿namespace MyBackend.Services;
+﻿namespace MyBackend.Services.Interfaces;
 
 public interface ITokenBlacklistService
 {

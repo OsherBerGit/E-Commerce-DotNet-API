@@ -1,4 +1,5 @@
 ﻿using MyBackend.DTOs.PurchaseDtos;
+using MyBackend.Mappers.Interfaces;
 using MyBackend.Models;
 
 namespace MyBackend.Mappers;

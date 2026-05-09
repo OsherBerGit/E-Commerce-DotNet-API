@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using MyBackend.DTOs;
 using MyBackend.DTOs.ProductDtos;
 using MyBackend.Services;
+using MyBackend.Services.Interfaces;
 
 namespace MyBackend.Controllers;
 
@@ -56,5 +57,12 @@ public class ProductController(IProductService productService) : ControllerBase
     {
         var updatedProduct = await productService.UpdateProductQuantityAsync(id, delta);
         return Ok(updatedProduct); 
+    }
+    
+    [HttpPost("{productId}/add-photo")]
+    public async Task<IActionResult> AddPhoto(int productId, IFormFile file)
+    {
+        var updatedProduct = await productService.AddPhotoToProductAsync(productId, file);
+        return Ok(updatedProduct);
     }
 }

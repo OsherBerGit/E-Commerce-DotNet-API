@@ -5,8 +5,10 @@ using MyBackend.Data;
 using MyBackend.DTOs;
 using MyBackend.DTOs.PurchaseDtos;
 using MyBackend.Mappers;
+using MyBackend.Mappers.Interfaces;
 using MyBackend.Models;
 using MyBackend.Services;
+using MyBackend.Services.Interfaces;
 
 namespace MyBackend.Tests.Services;
 

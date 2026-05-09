@@ -2,7 +2,7 @@
 using MyBackend.DTOs.ProductDtos;
 using MyBackend.Models;
 
-namespace MyBackend.Mappers;
+namespace MyBackend.Mappers.Interfaces;
 
 public interface IProductMapper
 {

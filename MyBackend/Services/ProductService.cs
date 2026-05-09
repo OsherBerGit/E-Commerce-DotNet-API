@@ -4,10 +4,12 @@ using MyBackend.DTOs;
 using MyBackend.DTOs.ProductDtos;
 using MyBackend.Exceptions;
 using MyBackend.Mappers;
+using MyBackend.Mappers.Interfaces;
+using MyBackend.Services.Interfaces;
 
 namespace MyBackend.Services;
 
-public class ProductService(AppDbContext _context, IProductMapper _mapper) : IProductService
+public class ProductService(AppDbContext _context, IProductMapper _mapper, IPhotoService _photoService) : IProductService
 {
     public async Task<List<ProductDto>> GetAllProductsAsync()
     {
@@ -80,5 +82,24 @@ public class ProductService(AppDbContext _context, IProductMapper _mapper) : IPr
         await _context.SaveChangesAsync();
         
         return _mapper.ToDto(product);
+    }
+    
+    public async Task<ProductDto> AddPhotoToProductAsync(int productId, IFormFile file)
+    {
+        var product = await _context.Products.FindAsync(productId);
+        if (product is null) 
+            throw new KeyNotFoundException("Product not found");
+        
+        var result = await _photoService.AddPhotoAsync(file);
+
+        if (result.Error is not null) 
+            throw new Exception($"Cloudinary error: {result.Error.Message}");
+        
+        product.ImageUrl = result.SecureUrl.AbsoluteUri;
+        product.PublicId = result.PublicId;
+
+        await _context.SaveChangesAsync();
+        
+        return _mapper.ToDto(product); 
     }
 }

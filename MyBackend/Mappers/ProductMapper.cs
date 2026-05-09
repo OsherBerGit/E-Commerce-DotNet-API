@@ -1,5 +1,6 @@
 ﻿using MyBackend.DTOs;
 using MyBackend.DTOs.ProductDtos;
+using MyBackend.Mappers.Interfaces;
 using MyBackend.Models;
 
 namespace MyBackend.Mappers;
@@ -16,7 +17,8 @@ public class ProductMapper : IProductMapper
             Name = product.Name,
             Description = product.Description,
             Price = product.Price,
-            Quantity = product.Quantity
+            Quantity = product.Quantity,
+            ImageUrl = product.ImageUrl
         };
     }
 

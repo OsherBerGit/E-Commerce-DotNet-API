@@ -4,6 +4,7 @@ using Moq;
 using MyBackend.Data;
 using MyBackend.DTOs.ReviewDtos;
 using MyBackend.Mappers;
+using MyBackend.Mappers.Interfaces;
 using MyBackend.Models;
 using MyBackend.Services;
 

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MyBackend.DTOs.UserDtos;
 using MyBackend.Services;
+using MyBackend.Services.Interfaces;
 
 namespace MyBackend.Controllers;
 

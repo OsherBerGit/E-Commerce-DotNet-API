@@ -1,7 +1,7 @@
 ﻿using MyBackend.DTOs;
 using MyBackend.DTOs.ProductDtos;
 
-namespace MyBackend.Services;
+namespace MyBackend.Services.Interfaces;
 
 public interface IProductService
 {
@@ -11,4 +11,5 @@ public interface IProductService
     Task<ProductDto?> UpdateProductAsync(int id, UpdateProductDto dto);
     Task<bool> DeleteProductAsync(int id);
     Task<ProductDto?> UpdateProductQuantityAsync(int id, int delta);
+    Task<ProductDto> AddPhotoToProductAsync(int productId, IFormFile file);
 }
