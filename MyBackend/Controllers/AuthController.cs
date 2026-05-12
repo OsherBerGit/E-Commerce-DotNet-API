@@ -10,26 +10,26 @@ namespace MyBackend.Controllers;
 
 [ApiController]
 [EnableRateLimiting("AuthPolicy")]
-public class AuthController(IAuthService authService) : ControllerBase
+public class AuthController(IAuthService _authService) : ControllerBase
 {
     [HttpPost("register")]
     public async Task<IActionResult> Register(CreateUserDto request)
     {
-        var user = await authService.RegisterUserAsync(request);
+        var user = await _authService.RegisterUserAsync(request);
         return Ok(new { message = "User registered successfully", userId = user.Id });
     }
     
     [HttpPost("login")]
     public async Task<ActionResult<AuthenticationResponse>> Login(AuthenticationRequest authenticationRequest)
     {
-        var result = await authService.LoginUserAsync(authenticationRequest);
+        var result = await _authService.LoginUserAsync(authenticationRequest);
         return Ok(result);
     }
 
     [HttpPost("refresh-token")]
     public async Task<ActionResult<AuthenticationResponse>> RefreshToken()
     {
-        var result = await authService.RefreshTokenAsync();
+        var result = await _authService.RefreshTokenAsync();
         return Ok(result);
     }
     
@@ -37,7 +37,14 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("logout")]
     public async Task<IActionResult> Logout()
     {
-        await authService.RevokeTokenAsync(); 
+        await _authService.RevokeTokenAsync(); 
         return NoContent();
+    }
+    
+    [HttpPost("google-login")]
+    public async Task<ActionResult<AuthenticationResponse>> GoogleLogin([FromBody] GoogleLoginDto dto)
+    {
+        var response = await _authService.LoginWithGoogleAsync(dto.IdToken);
+        return Ok(response);
     }
 }

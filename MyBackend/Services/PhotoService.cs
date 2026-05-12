@@ -1,6 +1,7 @@
 ﻿using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Options;
+using MyBackend.DTOs;
 using MyBackend.Services.Interfaces;
 using MyBackend.Settings;
 
@@ -21,27 +22,29 @@ public class PhotoService : IPhotoService
         _cloudinary = new Cloudinary(acc);
     }
     
-    public async Task<ImageUploadResult> AddPhotoAsync(IFormFile file)
+    public async Task<PhotoResponseDto> AddPhotoAsync(IFormFile file)
     {
-        var uploadResult = new ImageUploadResult();
-
-        if (file.Length > 0)
+        if (file.Length == 0) 
+            throw new ArgumentException("File is empty.");
+        
+        using var stream = file.OpenReadStream();
+        var uploadParams = new ImageUploadParams
         {
-            using var stream = file.OpenReadStream();
-            var uploadParams = new ImageUploadParams
-            {
-                File = new FileDescription(file.FileName, stream),
-                Transformation = new Transformation().Height(500).Width(500).Crop("fill").Gravity("face")
-            };
-            uploadResult = await _cloudinary.UploadAsync(uploadParams);
-        }
+            File = new FileDescription(file.FileName, stream),
+            Transformation = new Transformation().Height(500).Width(500).Crop("fill").Gravity("face")
+        };
+        
+        var result = await _cloudinary.UploadAsync(uploadParams);
+        if (result.Error != null)
+            throw new Exception($"Cloudinary upload failed: {result.Error.Message}");
 
-        return uploadResult;
+        return new PhotoResponseDto(result.SecureUrl.AbsoluteUri, result.PublicId);;
     }
     
-    public async Task<DeletionResult> DeletePhotoAsync(string publicId)
+    public async Task DeletePhotoAsync(string publicId)
     {
-        var deleteParams = new DeletionParams(publicId);
-        return await _cloudinary.DestroyAsync(deleteParams);
+        var result = await _cloudinary.DestroyAsync(new DeletionParams(publicId));
+        if (result.Error != null)
+            throw new Exception($"Cloudinary deletion failed: {result.Error.Message}");
     }
 }

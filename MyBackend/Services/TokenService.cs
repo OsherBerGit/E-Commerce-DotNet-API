@@ -10,7 +10,7 @@ namespace MyBackend.Services;
 
 public class TokenService(IConfiguration configuration) : ITokenService
 {
-    public string CreateToken(User user)
+    public string GenerateToken(User user)
     {
         var claims = new List<Claim>
         {
@@ -29,7 +29,7 @@ public class TokenService(IConfiguration configuration) : ITokenService
             issuer: configuration.GetSection("JwtSettings:Issuer").Value,
             audience: configuration.GetSection("JwtSettings:Audience").Value,
             claims: claims,
-            expires: DateTime.Now.AddHours(1),
+            expires: DateTime.UtcNow.AddHours(1),
             signingCredentials: creds
         );
 

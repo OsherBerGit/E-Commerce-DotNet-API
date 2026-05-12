@@ -17,12 +17,16 @@ public static class ServiceExtensions
         services.AddScoped<IReviewService, ReviewService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<ITokenBlacklistService, TokenBlacklistService>();
+        services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<IPhotoService, PhotoService>();
+        services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
 
         // Dependency Injection - Mappers
         services.AddScoped<IUserMapper, UserMapper>();
         services.AddScoped<IProductMapper, ProductMapper>();
         services.AddScoped<IPurchaseMapper, PurchaseMapper>();
         services.AddScoped<IReviewMapper, ReviewMapper>();
+        services.AddScoped<ICategoryMapper, CategoryMapper>();
 
         return services;
     }

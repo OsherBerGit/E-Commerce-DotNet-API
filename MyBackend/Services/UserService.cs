@@ -2,7 +2,6 @@
 using MyBackend.Data;
 using MyBackend.DTOs.UserDtos;
 using MyBackend.Exceptions;
-using MyBackend.Mappers;
 using MyBackend.Mappers.Interfaces;
 using MyBackend.Models;
 using MyBackend.Services.Interfaces;
@@ -13,12 +12,11 @@ public class UserService(AppDbContext _context, IUserMapper _mapper) : IUserServ
 {
     public async Task<List<UserDto>> GetAllUsersAsync()
     {
-        var users = await _context.Users
+        return await _context.Users
             .AsNoTracking()
-            .Include(u => u.Roles) 
+            .Include(u => u.Roles)
+            .Select(u => _mapper.ToDto(u)!)
             .ToListAsync();
-
-        return users.Select(u => _mapper.ToDto(u)!).ToList();
     }
     
     public async Task<UserDto?> GetUserByIdAsync(int id)
@@ -27,6 +25,9 @@ public class UserService(AppDbContext _context, IUserMapper _mapper) : IUserServ
             .AsNoTracking()
             .Include(u => u.Roles)
             .FirstOrDefaultAsync(u => u.Id == id);
+        
+        if (user is null)
+            throw new KeyNotFoundException($"User with ID {id} not found.");
 
         return _mapper.ToDto(user);
     }
@@ -47,7 +48,6 @@ public class UserService(AppDbContext _context, IUserMapper _mapper) : IUserServ
         
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
-
         return _mapper.ToDto(user)!;
     }
     
@@ -58,12 +58,11 @@ public class UserService(AppDbContext _context, IUserMapper _mapper) : IUserServ
             .FirstOrDefaultAsync(u => u.Id == id);
         
         if (user is null)
-            throw new Exception("User not found");
+            throw new KeyNotFoundException($"User with ID {id} not found.");
         
         user.Email = dto.Email ?? user.Email;
 
         await _context.SaveChangesAsync();
-
         return _mapper.ToDto(user);
     }
     
@@ -71,11 +70,10 @@ public class UserService(AppDbContext _context, IUserMapper _mapper) : IUserServ
     {
         var user = await _context.Users.FindAsync(id);
         if (user is null)
-            throw new Exception("User not found");
+            throw new KeyNotFoundException($"User with ID {id} not found.");
 
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();
-
         return true;
     }
 }

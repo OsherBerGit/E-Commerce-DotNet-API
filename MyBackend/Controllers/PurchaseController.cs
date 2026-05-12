@@ -10,12 +10,12 @@ namespace MyBackend.Controllers;
 [ApiController]
 [Route("api/purchases")]
 [Authorize]
-public class PurchaseController(IPurchaseService purchaseService) : ControllerBase
+public class PurchaseController(IPurchaseService _purchaseService) : ControllerBase
 {
     [HttpGet("{id}")]
     public async Task<ActionResult<PurchaseDto>> GetPurchaseById(int id)
     {
-        var purchase = await purchaseService.GetPurchaseByIdAsync(id);
+        var purchase = await _purchaseService.GetPurchaseByIdAsync(id);
         return Ok(purchase);
     }
     
@@ -23,7 +23,7 @@ public class PurchaseController(IPurchaseService purchaseService) : ControllerBa
     public async Task<ActionResult<PurchaseDto>> CreatePurchase([FromBody] CreatePurchaseDto dto)
     {
         int userId = User.GetUserId();
-        var newPurchase = await purchaseService.CreatePurchaseAsync(userId, dto);
+        var newPurchase = await _purchaseService.CreatePurchaseAsync(userId, dto);
         return CreatedAtAction(nameof(GetPurchaseById), new { id = newPurchase.Id }, newPurchase);
     }
 
@@ -31,7 +31,7 @@ public class PurchaseController(IPurchaseService purchaseService) : ControllerBa
     [HttpGet("user/{userId}")]
     public async Task<ActionResult<List<PurchaseDto>>> GetPurchasesByUserId(int userId)
     {
-        var purchases = await purchaseService.GetPurchasesByUserIdAsync(userId);
+        var purchases = await _purchaseService.GetPurchasesByUserIdAsync(userId);
         return Ok(purchases);
     }
     
@@ -39,7 +39,7 @@ public class PurchaseController(IPurchaseService purchaseService) : ControllerBa
     public async Task<ActionResult<List<PurchaseDto>>> GetMyPurchases()
     {
         int userId = User.GetUserId();
-        var purchases = await purchaseService.GetPurchasesByUserIdAsync(userId);
+        var purchases = await _purchaseService.GetPurchasesByUserIdAsync(userId);
         return Ok(purchases);
     }
 

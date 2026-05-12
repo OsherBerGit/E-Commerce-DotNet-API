@@ -1,9 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MyBackend.Data;
 using MyBackend.DTOs.PurchaseDtos;
-using MyBackend.Mappers;
 using MyBackend.Mappers.Interfaces;
-using MyBackend.Models;
 using MyBackend.Services.Interfaces;
 
 namespace MyBackend.Services;
@@ -19,12 +17,19 @@ public class PurchaseService(AppDbContext _context, IPurchaseMapper _mapper) : I
             .Include(p => p.PurchaseProducts)
             .ThenInclude(pp => pp.Product)
             .FirstOrDefaultAsync(p => p.Id == id);
+        
+        if (purchase is null)
+            throw new KeyNotFoundException($"Purchase with ID {id} not found.");
 
         return _mapper.ToDto(purchase);
     }
 
     public async Task<List<PurchaseDto>> GetPurchasesByUserIdAsync(int userId)
     {
+        var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+        if (!userExists)
+            throw new KeyNotFoundException($"User with ID {userId} not found.");
+        
         var purchases = await _context.Purchases
             .AsNoTracking()
             .Where(p => p.UserId == userId)
@@ -40,7 +45,7 @@ public class PurchaseService(AppDbContext _context, IPurchaseMapper _mapper) : I
     {
         var user = await _context.Users.FindAsync(userId);
         if (user is null)
-            throw new Exception("User not found");
+            throw new KeyNotFoundException($"User with ID {userId} not found.");
         
         var purchase = _mapper.ToEntity(dto);
         purchase.UserId = userId;
@@ -50,10 +55,10 @@ public class PurchaseService(AppDbContext _context, IPurchaseMapper _mapper) : I
         {
             var existingProduct = await _context.Products.FindAsync(item.ProductId);
             if (existingProduct is null)
-                throw new Exception($"Product with ID {item.ProductId} not found.");
+                throw new KeyNotFoundException($"Product with ID {item.ProductId} not found.");
             
             if (existingProduct.Quantity < item.Quantity)
-                throw new Exception($"Product with ID {item.ProductId} has only {existingProduct.Quantity} left.");
+                throw new InvalidOperationException($"Product '{existingProduct.Name}' has only {existingProduct.Quantity} left in stock.");
             
             existingProduct.Quantity -= item.Quantity;
             item.Product = existingProduct;
@@ -61,9 +66,8 @@ public class PurchaseService(AppDbContext _context, IPurchaseMapper _mapper) : I
         
         _context.Purchases.Add(purchase);
         await _context.SaveChangesAsync();
-        
         return _mapper.ToDto(purchase);
     }
 
-    public async Task<bool> DeletePurchaseAsync(int id) { throw new NotImplementedException(); }
+    public async Task<bool> DeletePurchaseAsync(int id) => throw new NotImplementedException();
 }

@@ -1,9 +1,9 @@
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.EntityFrameworkCore;
 using MyBackend.Data;
 using MyBackend.Extensions;
 using MyBackend.Middlewares;
-using MyBackend.Services;
-using MyBackend.Services.Interfaces;
 using MyBackend.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,8 +41,9 @@ builder.Services.AddProblemDetails();
 // 1. Connect appsettings.json section to the CloudinarySettings class
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 
-// 2. Register the service for Dependency Injection
-builder.Services.AddScoped<IPhotoService, PhotoService>();
+var firebasePath = Path.Combine(Directory.GetCurrentDirectory(), "firebase-config.json");
+if (File.Exists(firebasePath))
+    FirebaseApp.Create(new AppOptions() { Credential = GoogleCredential.FromFile(firebasePath) });
 
 var app = builder.Build();
 

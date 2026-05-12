@@ -22,6 +22,9 @@ public class Product
     [Required]
     [Range(0, int.MaxValue, ErrorMessage = "Quantity must be positive")]
     public int Quantity { get; set; }
+
+    public int CategoryId { get; set; }
+    public Category Category { get; set; } = null!;
     
     public string? ImageUrl { get; set; }
     public string? PublicId { get; set; }

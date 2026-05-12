@@ -1,9 +1,10 @@
 ﻿using CloudinaryDotNet.Actions;
+using MyBackend.DTOs;
 
 namespace MyBackend.Services.Interfaces;
 
 public interface IPhotoService
 {
-    Task<ImageUploadResult> AddPhotoAsync(IFormFile file);
-    Task<DeletionResult> DeletePhotoAsync(string publicId);
+    Task<PhotoResponseDto> AddPhotoAsync(IFormFile file);
+    Task DeletePhotoAsync(string publicId);
 }

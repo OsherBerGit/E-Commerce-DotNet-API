@@ -14,6 +14,7 @@ public class AuthServiceTests
 {
     private readonly Mock<ITokenService> _tokenServiceMock;
     private readonly Mock<IHttpContextAccessor> _httpContextMock;
+    private readonly Mock<IFirebaseAuthService> _firebaseAuthMock;
     private readonly AppDbContext _context;
     private readonly AuthService _authService;
     
@@ -30,7 +31,7 @@ public class AuthServiceTests
         _context = new AppDbContext(options);
         
         // 3. Create Service
-        _authService = new AuthService(_context, _tokenServiceMock.Object, _httpContextMock.Object);
+        _authService = new AuthService(_context, _tokenServiceMock.Object, _httpContextMock.Object, null, _firebaseAuthMock.Object);
     }
 
     [Fact]
@@ -75,7 +76,7 @@ public class AuthServiceTests
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
         
-        _tokenServiceMock.Setup(x => x.CreateToken(It.IsAny<User>()))
+        _tokenServiceMock.Setup(x => x.GenerateToken(It.IsAny<User>()))
             .Returns("fake-jwt-token");
     
         _tokenServiceMock.Setup(x => x.GenerateRefreshToken(It.IsAny<User>()))
@@ -90,6 +91,33 @@ public class AuthServiceTests
         result.Should().NotBeNull();
         result.AccessToken.Should().Be("fake-jwt-token");
         
-        _tokenServiceMock.Verify(x => x.CreateToken(It.IsAny<User>()), Times.Once);
+        _tokenServiceMock.Verify(x => x.GenerateToken(It.IsAny<User>()), Times.Once);
+    }
+    
+    [Fact]
+    public async Task LoginWithGoogleAsync_ShouldCreateUser_WhenUserIsNew()
+    {
+        // Arrange
+        var fakeEmail = "newuser@gmail.com";
+        
+        _firebaseAuthMock.Setup(x => x.VerifyTokenAsync(It.IsAny<string>()))
+            .ReturnsAsync(fakeEmail);
+
+        _tokenServiceMock.Setup(x => x.GenerateToken(It.IsAny<User>()))
+            .Returns("fake-jwt-token");
+            
+        _tokenServiceMock.Setup(x => x.GenerateRefreshToken(It.IsAny<User>()))
+            .Returns(new RefreshToken { Token = "fake-refresh", Expires = DateTime.UtcNow.AddDays(7) });
+
+        // Act
+        var result = await _authService.LoginWithGoogleAsync("fake-google-token");
+
+        // Assert
+        result.Should().NotBeNull();
+        result.AccessToken.Should().Be("fake-jwt-token");
+        
+        var savedUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == fakeEmail);
+        savedUser.Should().NotBeNull();
+        savedUser!.PasswordHash.Should().Be("EXTERNAL_AUTH");
     }
 }

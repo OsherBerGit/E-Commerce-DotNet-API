@@ -18,6 +18,7 @@ public class ProductMapper : IProductMapper
             Description = product.Description,
             Price = product.Price,
             Quantity = product.Quantity,
+            CategoryId = product.CategoryId,
             ImageUrl = product.ImageUrl
         };
     }
@@ -29,7 +30,9 @@ public class ProductMapper : IProductMapper
             Name = dto.Name,
             Description = dto.Description,
             Price = dto.Price,
-            Quantity = dto.Quantity
+            Quantity = dto.Quantity,
+            CategoryId = dto.CategoryId ?? 0,
+            ImageUrl = dto.ImageUrl 
         };
     }
 
@@ -38,5 +41,8 @@ public class ProductMapper : IProductMapper
         entity.Name = dto.Name ?? entity.Name;
         entity.Description = dto.Description ?? entity.Description;
         entity.Price = dto.Price ?? entity.Price;
+        entity.Quantity = dto.Quantity ?? entity.Quantity;
+        entity.CategoryId = dto.CategoryId ?? entity.CategoryId;
+        entity.ImageUrl = dto.ImageUrl ?? entity.ImageUrl;
     }
 }

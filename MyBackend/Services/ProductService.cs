@@ -3,7 +3,6 @@ using MyBackend.Data;
 using MyBackend.DTOs;
 using MyBackend.DTOs.ProductDtos;
 using MyBackend.Exceptions;
-using MyBackend.Mappers;
 using MyBackend.Mappers.Interfaces;
 using MyBackend.Services.Interfaces;
 
@@ -13,11 +12,11 @@ public class ProductService(AppDbContext _context, IProductMapper _mapper, IPhot
 {
     public async Task<List<ProductDto>> GetAllProductsAsync()
     {
-        var products = await _context.Products
+        return await _context.Products
             .AsNoTracking()
+            .Include(p => p.Category)
+            .Select(p => _mapper.ToDto(p)!)
             .ToListAsync();
-        
-        return products.Select(p => _mapper.ToDto(p)!).ToList();
     }
     
     public async Task<ProductDto?> GetProductByIdAsync(int id)
@@ -25,6 +24,9 @@ public class ProductService(AppDbContext _context, IProductMapper _mapper, IPhot
         var product = await _context.Products
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == id);
+        
+        if (product is null) 
+            throw new KeyNotFoundException($"Product with ID {id} not found.");
         
         return _mapper.ToDto(product);
     }
@@ -39,7 +41,6 @@ public class ProductService(AppDbContext _context, IProductMapper _mapper, IPhot
         
         _context.Products.Add(product);
         await _context.SaveChangesAsync();
-
         return _mapper.ToDto(product)!;
     }
     
@@ -47,7 +48,7 @@ public class ProductService(AppDbContext _context, IProductMapper _mapper, IPhot
     {
         var product = await _context.Products.FindAsync(id);
         if (product is null)
-            return null;
+            throw new KeyNotFoundException($"Product with ID {id} not found.");
         
         _mapper.UpdateEntity(dto, product);
 
@@ -60,11 +61,10 @@ public class ProductService(AppDbContext _context, IProductMapper _mapper, IPhot
     {
         var product = await _context.Products.FindAsync(id);
         if (product is null)
-            return false;
+            throw new KeyNotFoundException($"Product with ID {id} not found.");
         
         _context.Products.Remove(product);
         await _context.SaveChangesAsync();
-        
         return true;
     }
 
@@ -72,15 +72,13 @@ public class ProductService(AppDbContext _context, IProductMapper _mapper, IPhot
     {
         var product = await _context.Products.FindAsync(id);
         if (product is null)
-            return null;
+            throw new KeyNotFoundException($"Product with ID {id} not found.");
         
         if (product.Quantity + delta < 0)
             throw new InvalidOperationException("Quantity cannot be negative!");
         
         product.Quantity += delta; 
-
         await _context.SaveChangesAsync();
-        
         return _mapper.ToDto(product);
     }
     
@@ -88,18 +86,27 @@ public class ProductService(AppDbContext _context, IProductMapper _mapper, IPhot
     {
         var product = await _context.Products.FindAsync(productId);
         if (product is null) 
-            throw new KeyNotFoundException("Product not found");
+            throw new KeyNotFoundException($"Product with ID {productId} not found");
         
         var result = await _photoService.AddPhotoAsync(file);
-
-        if (result.Error is not null) 
-            throw new Exception($"Cloudinary error: {result.Error.Message}");
         
-        product.ImageUrl = result.SecureUrl.AbsoluteUri;
+        product.ImageUrl = result.Url;
         product.PublicId = result.PublicId;
 
         await _context.SaveChangesAsync();
+        return _mapper.ToDto(product);
+    }
+
+    public async Task<List<ProductDto>> GetAllProductsAsync(int? categoryId = null)
+    {
+        var query = _context.Products.AsNoTracking();
         
-        return _mapper.ToDto(product); 
+        if (categoryId.HasValue)
+            query = from p in query
+                    where p.CategoryId == categoryId.Value
+                    select p;
+        
+        var products = await query.ToListAsync();
+        return products.Select(p => _mapper.ToDto(p)!).ToList();
     }
 }

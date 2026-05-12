@@ -15,6 +15,8 @@ namespace MyBackend.Data
         
         public DbSet<Purchase> Purchases { get; set; }
         
+        public DbSet<Category> Categories { get; set; }
+        
         public DbSet<PurchaseProduct> PurchaseProducts { get; set; }
         
         public DbSet<ProductReview> ProductReviews { get; set; }
@@ -34,6 +36,17 @@ namespace MyBackend.Data
                     .HasIndex(p => new { p.UserId, p.Date })
                     .IsUnique();
                 
+                // Configure Category Unique Index and Many-to-One
+                modelBuilder.Entity<Category>()
+                    .HasIndex(c => c.Name)
+                    .IsUnique();
+                
+                modelBuilder.Entity<Category>()
+                    .HasMany(c => c.Products)
+                    .WithOne(p => p.Category)
+                    .HasForeignKey(p => p.CategoryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                
                 // Configure PurchaseProduct Many-to-Many
                 modelBuilder.Entity<PurchaseProduct>()
                     .HasKey(pp => new { pp.PurchaseId, pp.ProductId });
@@ -46,7 +59,7 @@ namespace MyBackend.Data
                 
                 modelBuilder.Entity<PurchaseProduct>()
                     .HasOne(pp => pp.Product)
-                    .WithMany() // no need to store the inverse
+                    .WithMany()
                     .HasForeignKey(pp => pp.ProductId)
                     .OnDelete(DeleteBehavior.Restrict);
 

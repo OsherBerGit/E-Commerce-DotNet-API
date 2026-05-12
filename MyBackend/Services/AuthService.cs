@@ -9,9 +9,9 @@ using MyBackend.Services.Interfaces;
 
 namespace MyBackend.Services;
 
-public class AuthService(AppDbContext context, ITokenService _tokenService, IHttpContextAccessor _httpContextAccessor, ITokenBlacklistService _tokenBlacklistService) : IAuthService
+public class AuthService(AppDbContext context, ITokenService _tokenService, IHttpContextAccessor _httpContextAccessor, ITokenBlacklistService _tokenBlacklistService, IFirebaseAuthService _firebaseAuthService) : IAuthService
 {
-    public async Task<User?> RegisterUserAsync(CreateUserDto request)
+    public async Task<User> RegisterUserAsync(CreateUserDto request)
     {
         if (await context.Users.AnyAsync(u => u.Username == request.Username))
             throw new UserAlreadyExistsException("Username is already taken");
@@ -29,7 +29,7 @@ public class AuthService(AppDbContext context, ITokenService _tokenService, IHtt
         return user;
     }
 
-    public async Task<AuthenticationResponse?> LoginUserAsync(AuthenticationRequest request)
+    public async Task<AuthenticationResponse> LoginUserAsync(AuthenticationRequest request)
     {
         var user = await context.Users
             .Include(u => u.Roles)
@@ -38,7 +38,7 @@ public class AuthService(AppDbContext context, ITokenService _tokenService, IHtt
         if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             throw new UnauthorizedAccessException("Invalid credentials");
         
-        var accessToken = _tokenService.CreateToken(user);
+        var accessToken = _tokenService.GenerateToken(user);
         var refreshToken = _tokenService.GenerateRefreshToken(user);
         
         user.RefreshTokens.Add(refreshToken); 
@@ -49,7 +49,7 @@ public class AuthService(AppDbContext context, ITokenService _tokenService, IHtt
         return new AuthenticationResponse() { AccessToken = accessToken, };
     }
 
-    public async Task<AuthenticationResponse?> RefreshTokenAsync()
+    public async Task<AuthenticationResponse> RefreshTokenAsync()
     {
         var token = _httpContextAccessor.HttpContext?.Request.Cookies["refreshToken"];
         
@@ -71,7 +71,7 @@ public class AuthService(AppDbContext context, ITokenService _tokenService, IHtt
         
         refreshToken.Revoked = DateTime.UtcNow;
         
-        var newAccessToken = _tokenService.CreateToken(user);
+        var newAccessToken = _tokenService.GenerateToken(user);
         var newRefreshToken = _tokenService.GenerateRefreshToken(user);
 
         user.RefreshTokens.Add(newRefreshToken);
@@ -82,7 +82,7 @@ public class AuthService(AppDbContext context, ITokenService _tokenService, IHtt
         return new AuthenticationResponse { AccessToken = newAccessToken };
     }
 
-    public async Task<bool> RevokeTokenAsync()
+    public async Task RevokeTokenAsync()
     {
         var refreshTokenString = _httpContextAccessor.HttpContext?.Request.Cookies["refreshToken"];
         var authHeader = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
@@ -101,23 +101,21 @@ public class AuthService(AppDbContext context, ITokenService _tokenService, IHtt
             catch (Exception) { }
         }
         
-        if (string.IsNullOrEmpty(refreshTokenString)) return false;
+        if (string.IsNullOrEmpty(refreshTokenString)) return;
     
         var user = await context.Users
             .Include(u => u.RefreshTokens)
             .FirstOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == refreshTokenString));
     
-        if (user is null) return false;
+        if (user is null) return;
         
         var refreshTokenEntity = user.RefreshTokens.SingleOrDefault(x => x.Token == refreshTokenString);
-        if (refreshTokenEntity is null || !refreshTokenEntity.IsActive) return false;
+        if (refreshTokenEntity is null || !refreshTokenEntity.IsActive) return;
     
         refreshTokenEntity.Revoked = DateTime.UtcNow;
         await context.SaveChangesAsync();
         
         _httpContextAccessor.HttpContext?.Response.Cookies.Delete("refreshToken");
-    
-        return true;
     }
     
     private void SetRefreshTokenCookie(RefreshToken refreshToken)
@@ -132,5 +130,36 @@ public class AuthService(AppDbContext context, ITokenService _tokenService, IHtt
         };
 
         _httpContextAccessor.HttpContext?.Response.Cookies.Append("refreshToken", refreshToken.Token, cookieOptions);
+    }
+    
+    public async Task<AuthenticationResponse> LoginWithGoogleAsync(string idToken)
+    {
+        string email = await _firebaseAuthService.VerifyTokenAsync(idToken);
+    
+        var user = await context.Users
+            .Include(u => u.Roles)
+            .FirstOrDefaultAsync(u => u.Email == email);
+    
+        if (user is null)
+        {
+            user = new User
+            {
+                Email = email,
+                Username = email,
+                PasswordHash = "EXTERNAL_AUTH"
+            };
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+        }
+        
+        var accessToken = _tokenService.GenerateToken(user);
+        var refreshToken = _tokenService.GenerateRefreshToken(user);
+
+        user.RefreshTokens.Add(refreshToken);
+        await context.SaveChangesAsync();
+    
+        SetRefreshTokenCookie(refreshToken);
+
+        return new AuthenticationResponse { AccessToken = accessToken };
     }
 }

@@ -6,8 +6,9 @@ namespace MyBackend.Services.Interfaces;
 
 public interface IAuthService
 {
-    Task<User?> RegisterUserAsync(CreateUserDto request);
-    Task<AuthenticationResponse?> LoginUserAsync(AuthenticationRequest request);
-    Task<AuthenticationResponse?> RefreshTokenAsync();
-    Task<bool> RevokeTokenAsync();
+    Task<User> RegisterUserAsync(CreateUserDto request);
+    Task<AuthenticationResponse> LoginUserAsync(AuthenticationRequest request);
+    Task<AuthenticationResponse> RefreshTokenAsync();
+    Task RevokeTokenAsync();
+    Task<AuthenticationResponse> LoginWithGoogleAsync(string idToken);
 }

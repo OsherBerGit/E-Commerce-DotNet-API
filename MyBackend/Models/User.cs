@@ -6,16 +6,16 @@ namespace MyBackend.Models;
 [Table("Users")]
 public class User
 {
-    [Key] // Primary key
+    [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // Auto-increment
     public int Id { get; set; }
 
-    [Required(ErrorMessage = "Username is required")] // Required attribute
+    [Required(ErrorMessage = "Username is required")]
     [MaxLength(100)]
     public string Username { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Email is required")]
-    [EmailAddress(ErrorMessage = "Invalid Email format")] // EmailAddress attribute
+    [EmailAddress(ErrorMessage = "Invalid Email format")]
     [MaxLength(150)]
     public string Email { get; set; } = string.Empty;
     

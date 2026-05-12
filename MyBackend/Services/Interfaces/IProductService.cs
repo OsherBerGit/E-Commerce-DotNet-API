@@ -12,4 +12,5 @@ public interface IProductService
     Task<bool> DeleteProductAsync(int id);
     Task<ProductDto?> UpdateProductQuantityAsync(int id, int delta);
     Task<ProductDto> AddPhotoToProductAsync(int productId, IFormFile file);
+    Task<List<ProductDto>> GetAllProductsAsync(int? categoryId = null);
 }

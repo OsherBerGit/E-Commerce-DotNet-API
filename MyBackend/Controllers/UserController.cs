@@ -9,20 +9,20 @@ namespace MyBackend.Controllers;
 [ApiController]
 [Route("api/users")]
 [Authorize]
-public class UserController(IUserService userService) : ControllerBase
+public class UserController(IUserService _userService) : ControllerBase
 {
     [HttpGet]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<UserDto>>> GetAllUsers()
     {
-        var users = await userService.GetAllUsersAsync();
+        var users = await _userService.GetAllUsersAsync();
         return Ok(users);
     }
     
     [HttpGet("{id}")]
     public async Task<ActionResult<UserDto>> GetUserById(int id)
     {
-        var user = await userService.GetUserByIdAsync(id);
+        var user = await _userService.GetUserByIdAsync(id);
         return Ok(user);
     }
 
@@ -30,14 +30,14 @@ public class UserController(IUserService userService) : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<UserDto>> CreateUser(CreateUserDto dto)
     {
-        var newUser = await userService.CreateUserAsync(dto);
+        var newUser = await _userService.CreateUserAsync(dto);
         return CreatedAtAction(nameof(GetUserById), new { id = newUser.Id }, newUser);
     }
     
     [HttpPut("{id}")]
     public async Task<ActionResult<UserDto?>> UpdateUser(int id, UpdateUserDto dto)
     {
-        var updatedUser = await userService.UpdateUserAsync(id, dto);
+        var updatedUser = await _userService.UpdateUserAsync(id, dto);
         return Ok(updatedUser);
     }
     
@@ -45,7 +45,7 @@ public class UserController(IUserService userService) : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteUser(int id)
     {
-        await userService.DeleteUserAsync(id);
+        await _userService.DeleteUserAsync(id);
         return NoContent();
     }
 }
