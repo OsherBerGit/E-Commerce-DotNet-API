@@ -102,9 +102,7 @@ public class ProductService(AppDbContext _context, IProductMapper _mapper, IPhot
         var query = _context.Products.AsNoTracking();
         
         if (categoryId.HasValue)
-            query = from p in query
-                    where p.CategoryId == categoryId.Value
-                    select p;
+            query = query.Where(p => p.CategoryId == categoryId.Value);
         
         var products = await query.ToListAsync();
         return products.Select(p => _mapper.ToDto(p)!).ToList();
