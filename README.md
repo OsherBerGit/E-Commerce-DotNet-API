@@ -71,7 +71,7 @@ To run this API locally:
 
 1.  **Clone the repo:**
     ```bash
-    git clone [https://github.com/OsherBerGit/Backend-DotNet.git](https://github.com/OsherBerGit/Backend-DotNet.git)
+    git clone [[https://github.com/OsherBerGit/E-Commerce-DotNet-API.git](https://github.com/OsherBerGit/E-Commerce-DotNet-API.git)]
     ```
 2.  **Configure Environment:**
     Update the `ConnectionStrings` in `appsettings.json` with your PostgreSQL credentials. You will also need to configure your Cloudinary keys and Firebase Service Account JSON for media and OAuth to work fully.
