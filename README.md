@@ -41,7 +41,7 @@ Built with **.NET 8** and **PostgreSQL**, this project demonstrates a clean **La
 - **Refresh Token Rotation via HttpOnly Cookies:** Prevents token theft (XSS attacks) by securely storing and rotating refresh tokens on every use, with automatic revocation of compromised chains.
 - **Token Blacklisting:** Safely invalidates active access tokens upon user logout.
 - **RBAC Authorization:** Distinct roles for **Admins** (Inventory/User mgmt) and **Users** (Shopping/Reviews).
-- - **OAuth 2.0 Integration:** Seamless "Login with Google" flow via Firebase Admin SDK, seamlessly bridging third-party authentication into the internal JWT ecosystem.
+- **OAuth 2.0 Integration:** Seamless "Login with Google" flow via Firebase Admin SDK, seamlessly bridging third-party authentication into the internal JWT ecosystem.
 
 ### 🏗 Architecture & Performance
 
